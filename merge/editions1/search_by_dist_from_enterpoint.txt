@@ -1,0 +1,31 @@
+    for (int i = 0; i < curElementsNum; i++) {
+
+        float dist1 = merged_hnsw->fstdistfunc_((char*) (data + i * dim), merged_hnsw->getDataByInternalId(hnsw1->enterpoint_node_), merged_hnsw->dist_func_param_);
+        float dist2 = merged_hnsw->fstdistfunc_((char*) (data + i * dim), merged_hnsw->getDataByInternalId(hnsw2->enterpoint_node_ + graph1ElementsNum), merged_hnsw->dist_func_param_);
+        if (dist1 <= dist2) {
+            merged_hnsw->enterpoint_node_ = hnsw1->enterpoint_node_;
+        }
+        else {
+            merged_hnsw->enterpoint_node_ = hnsw2->enterpoint_node_ + graph1ElementsNum;
+        }
+
+        std::priority_queue<std::pair<float, hnswlib::labeltype>> result = merged_hnsw->searchKnn(data + i * dim, 1);
+        hnswlib::labeltype label = result.top().second;
+        if (label == i) {
+            correct++;
+        }
+        else {
+            if (merged_hnsw->enterpoint_node_ == hnsw1->enterpoint_node_) {
+                merged_hnsw->enterpoint_node_ = hnsw2->enterpoint_node_ + graph1ElementsNum;
+            }
+            else {
+                merged_hnsw->enterpoint_node_ = hnsw1->enterpoint_node_;
+            }
+
+            result = merged_hnsw->searchKnn(data + i * dim, 1);
+            label = result.top().second;
+            if (label == i) {
+                correct++;
+            }
+        }
+    }
